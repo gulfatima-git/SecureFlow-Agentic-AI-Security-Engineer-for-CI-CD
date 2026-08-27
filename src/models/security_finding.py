@@ -47,6 +47,12 @@ class SecurityFinding(BaseModel):
     category: str = ""
     metadata: dict[str, str] = Field(default_factory=dict)
 
+    # Dependency-analysis fields (populated by dependency analyzer, optional for other tools).
+    ecosystem: str = ""
+    package_name: str = ""
+    declared_version: str = ""
+    resolved_version: str = ""
+
 
 class ScanResult(BaseModel):
     """Aggregate result from a single tool execution.

@@ -6,6 +6,8 @@ from src.tools.bandit_runner import (
     BanditRunner,
     BanditTimeoutError,
 )
+from src.tools.dependency_analyzer import DependencyAnalyzer
+from src.tools.osv_client import OsvError, OsvTimeoutError
 from src.tools.repository_ingestor import IngestionError, RepositoryIngestor
 from src.tools.semgrep_runner import (
     SemgrepError,
@@ -19,7 +21,10 @@ __all__ = [
     "BanditNotInstalledError",
     "BanditRunner",
     "BanditTimeoutError",
+    "DependencyAnalyzer",
     "IngestionError",
+    "OsvError",
+    "OsvTimeoutError",
     "RepositoryIngestor",
     "SemgrepError",
     "SemgrepNotInstalledError",
