@@ -1,0 +1,11 @@
+services:
+  web:
+    image: nginx:1.25-alpine
+    ports:
+      - "8080:80"
+    environment:
+      - APP_ENV=production
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"

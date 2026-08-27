@@ -1,0 +1,21 @@
+services:
+  web:
+    image: nginx:latest
+    privileged: true
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DB_PASSWORD=supersecret123
+    networks:
+      - host
+  db:
+    image: postgres:15
+    cap_add:
+      - SYS_ADMIN
+    ports:
+      - "5432:5432"
+networks:
+  host:
+    external: true

@@ -1,0 +1,12 @@
+name: Unpinned Action
+on: push
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: some-org/some-action@v1
+      - name: Build
+        run: make build
