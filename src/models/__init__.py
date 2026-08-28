@@ -1,5 +1,12 @@
 """SecureFlow data models."""
 
+from src.models.code_finding import (
+    AgentDecision,
+    CodeAgentResult,
+    CodeFinding,
+    ToolCall,
+    ToolResult,
+)
 from src.models.repository import (
     ChangeStatus,
     FileCategory,
@@ -11,7 +18,10 @@ from src.models.repository import (
 from src.models.security_finding import Confidence, ScanResult, SecurityFinding, Severity
 
 __all__ = [
+    "AgentDecision",
     "ChangeStatus",
+    "CodeAgentResult",
+    "CodeFinding",
     "Confidence",
     "FileCategory",
     "FileChange",
@@ -21,4 +31,6 @@ __all__ = [
     "ScanResult",
     "SecurityFinding",
     "Severity",
+    "ToolCall",
+    "ToolResult",
 ]
