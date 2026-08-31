@@ -1,0 +1,13 @@
+name: CI
+on: [push, pull_request]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: npm ci && npm run build

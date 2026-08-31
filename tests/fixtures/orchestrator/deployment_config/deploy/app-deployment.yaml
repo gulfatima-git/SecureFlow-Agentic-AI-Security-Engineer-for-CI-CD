@@ -1,0 +1,18 @@
+# Deployment manifest for the demo application.
+#
+# This is a deployment YAML configuration file (CONFIG category) that must
+# route the CI/CD Security Agent even though it sits outside the classic
+# CI/CD file inventory.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: app
+          image: demo:latest
+          securityContext:
+            privileged: true
