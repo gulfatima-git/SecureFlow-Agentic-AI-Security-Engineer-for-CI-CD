@@ -1,0 +1,11 @@
+name: CD
+on:
+  push:
+    branches: [main]
+permissions: write-all
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: echo deploying
