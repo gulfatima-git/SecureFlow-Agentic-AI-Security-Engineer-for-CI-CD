@@ -34,6 +34,7 @@ from pathlib import Path
 from src.agents.tools import AgentTools
 from src.llm.base import LLMProvider, MalformedLLMResponseError, Message
 from src.models.code_finding import AgentDecision, CodeAgentResult, CodeFinding, ToolResult
+from src.models.finding import AgentName, FindingCategory, SecurityFinding
 from src.models.repository import RepositoryContext
 from src.tools.bandit_runner import BanditRunner
 from src.tools.semgrep_runner import SemgrepRunner
@@ -120,6 +121,24 @@ class CodeSecurityAgent:
     @property
     def tools(self) -> AgentTools:
         return self._tools
+
+    # Canonical output contract (Step 15). The producing agent is stamped by the
+    # agent, never taken from untrusted model/repository output.
+    finding_agent: AgentName = AgentName.CODE_SECURITY
+    finding_category: FindingCategory = FindingCategory.CODE
+
+    def to_security_finding(self, finding: CodeFinding) -> SecurityFinding:
+        """Convert an agent-produced ``CodeFinding`` to the canonical form.
+
+        This is the single conversion from the internal LLM output to the
+        canonical cross-agent ``SecurityFinding`` (see
+        :meth:`SecurityFinding.from_code_finding`).
+        """
+        return SecurityFinding.from_code_finding(
+            finding,
+            agent=self.finding_agent,
+            category=self.finding_category,
+        )
 
     def investigate(self) -> CodeAgentResult:
         """Run a single bounded investigation and return a structured finding.

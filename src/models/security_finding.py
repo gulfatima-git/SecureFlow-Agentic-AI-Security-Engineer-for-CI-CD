@@ -1,4 +1,11 @@
-"""Generic security finding model shared across all deterministic security tools."""
+"""Deterministic tool-evidence model shared across all security tools.
+
+Step 15 renamed this model from ``SecurityFinding`` to ``ToolFinding`` so that
+the name ``SecurityFinding`` could be reclaimed by the canonical cross-agent
+finding (see ``src/models/code_finding.py``). A backward-compatible alias is
+kept so existing tool-layer code (Steps 7–10) and its tests continue to work
+unchanged.
+"""
 
 from __future__ import annotations
 
@@ -25,12 +32,16 @@ class Confidence(StrEnum):
     UNKNOWN = "unknown"
 
 
-class SecurityFinding(BaseModel):
+class ToolFinding(BaseModel):
     """A single security finding produced by a deterministic analysis tool.
 
     This model is intentionally tool-agnostic. Semgrep, Bandit, dependency
     scanners, and CI/CD analyzers all populate the same structure so that
     downstream AI agents receive a uniform evidence format.
+
+    This is the deterministic *tool-evidence* record. The canonical cross-agent
+    ``SecurityFinding`` (Step 15) is a distinct, richer model produced by
+    specialized agents; agents may aggregate ``ToolFinding`` evidence into it.
     """
 
     tool: str
@@ -54,6 +65,11 @@ class SecurityFinding(BaseModel):
     resolved_version: str = ""
 
 
+# Backward-compatible alias: Steps 7–10 tool layers and tests still refer to
+# this model as ``SecurityFinding``. New code should use ``ToolFinding``.
+SecurityFinding = ToolFinding
+
+
 class ScanResult(BaseModel):
     """Aggregate result from a single tool execution.
 
@@ -62,7 +78,7 @@ class ScanResult(BaseModel):
     """
 
     tool: str
-    findings: list[SecurityFinding] = Field(default_factory=list)
+    findings: list[ToolFinding] = Field(default_factory=list)
     status: str = "success"
     error_message: str = ""
     findings_count: int = 0
