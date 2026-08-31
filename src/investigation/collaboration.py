@@ -35,7 +35,7 @@ from src.models.repository import RepositoryContext
 
 # Strict per-agent allow-list of request types.
 CODE_REQUEST_TYPES: frozenset[str] = frozenset(
-    {"source_context", "symbol_usage", "related_files"}
+    {"source_context", "symbol_usage", "related_files", "reachability"}
 )
 DEPENDENCY_REQUEST_TYPES: frozenset[str] = frozenset(
     {"dependency_usage", "dependency_details", "affected_component"}

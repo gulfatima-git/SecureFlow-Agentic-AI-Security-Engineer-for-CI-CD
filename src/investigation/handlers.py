@@ -49,6 +49,7 @@ def build_default_registry(
         "source_context": _read_source(reader),
         "symbol_usage": _search_source(dep_tools),
         "related_files": _list_source_files(source_files),
+        "reachability": _search_source(dep_tools),
     }
     dependency: dict[str, SpecialistHandler] = {
         "dependency_usage": _search_source(dep_tools),
