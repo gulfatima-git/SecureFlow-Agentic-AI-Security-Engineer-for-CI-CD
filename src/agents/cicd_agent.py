@@ -46,6 +46,7 @@ from src.agents.cicd_tools import CICDSecurityAgentTools
 from src.agents.code_security_agent import AgentTerminatedError
 from src.llm.base import LLMProvider, MalformedLLMResponseError, Message
 from src.models.code_finding import AgentDecision, CodeAgentResult, CodeFinding, ToolResult
+from src.models.finding import AgentName, FindingCategory, SecurityFinding
 from src.models.repository import RepositoryContext
 from src.tools.cicd_analyzer import CICDAnalyzer
 
@@ -150,6 +151,18 @@ class CICDSecurityAgent:
     @property
     def tools(self) -> CICDSecurityAgentTools:
         return self._tools
+
+    # Canonical output contract (Step 15).
+    finding_agent: AgentName = AgentName.CICD
+    finding_category: FindingCategory = FindingCategory.CICD
+
+    def to_security_finding(self, finding: CodeFinding) -> SecurityFinding:
+        """Convert an agent-produced ``CodeFinding`` to the canonical form."""
+        return SecurityFinding.from_code_finding(
+            finding,
+            agent=self.finding_agent,
+            category=self.finding_category,
+        )
 
     def investigate(self) -> CodeAgentResult:
         """Run a single bounded investigation and return a structured finding.

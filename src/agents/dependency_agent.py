@@ -41,6 +41,7 @@ from src.agents.code_security_agent import AgentTerminatedError
 from src.agents.dependency_tools import DependencyAgentTools
 from src.llm.base import LLMProvider, MalformedLLMResponseError, Message
 from src.models.code_finding import AgentDecision, CodeAgentResult, CodeFinding, ToolResult
+from src.models.finding import AgentName, FindingCategory, SecurityFinding
 from src.models.repository import RepositoryContext
 from src.tools.dependency_analyzer import DependencyAnalyzer
 
@@ -135,6 +136,18 @@ class DependencyAgent:
     @property
     def tools(self) -> DependencyAgentTools:
         return self._tools
+
+    # Canonical output contract (Step 15).
+    finding_agent: AgentName = AgentName.DEPENDENCY
+    finding_category: FindingCategory = FindingCategory.DEPENDENCY
+
+    def to_security_finding(self, finding: CodeFinding) -> SecurityFinding:
+        """Convert an agent-produced ``CodeFinding`` to the canonical form."""
+        return SecurityFinding.from_code_finding(
+            finding,
+            agent=self.finding_agent,
+            category=self.finding_category,
+        )
 
     def investigate(self) -> CodeAgentResult:
         """Run a single bounded investigation and return a structured finding.
