@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint
+        run: make lint
+      - uses: third-party/checkout@main
+        with:
+          fetch_depth: 0

