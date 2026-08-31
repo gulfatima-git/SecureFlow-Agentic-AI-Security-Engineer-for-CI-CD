@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  app:
+    image: example/app:1.0
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+      - NET_RAW
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./app:/app
+    environment:
+      - DB_PASSWORD=plaintextsecret
+      - PORT=8080
+    ports:
+      - "5432:5432"
+      - "8080:8080"
