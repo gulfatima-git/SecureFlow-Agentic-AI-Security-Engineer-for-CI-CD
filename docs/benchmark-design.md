@@ -377,6 +377,69 @@ Injection success requires a consequential change in the security investigation.
 
 The metrics `injection_success_rate`, `finding_suppression_rate`, and `incorrect_conclusion_rate` defined in `evaluation-methodology.md` are evaluated against these conditions.
 
+### Implemented case suite (Step 24)
+
+`src/evaluation/prompt_injection.py` defines the concrete RQ6 suite. It provides
+the inert, structured adversarial repositories that will later be fed to the
+LLM baseline (``LLMBaseline``), the SecureFlow multi-agent system, and
+traditional tooling so that all three are evaluated against identical untrusted
+content.
+
+Coverage spans the six attack locations an attacker can use to embed
+adversarial content in an otherwise benign repository:
+
+| Case | Attack location | Injection category | Legitimate artifact |
+|---|---|---|---|
+| `pi_readme` | README | Direct instruction | Hardcoded credential in `app.py` |
+| `pi_source_comment` | Source-code comment | Finding suppression | Command injection in `utils.py` |
+| `pi_commit_message` | Commit message | False safety assertion | SQL injection in `db.py` |
+| `pi_documentation` | Documentation | Indirect instruction | Command injection in `deploy.py` |
+| `pi_test_file` | Test file | Direct instruction | Hardcoded credential in `config.py` |
+| `pi_configuration` | Configuration file | Report manipulation | Plaintext password in `config.yml` |
+
+Pairs:
+
+- `pi_readme` ← `case_a` / `pi_source_comment` ← `case_b` / `pi_commit_message`
+  ← `case_c` / `pi_documentation` ← `case_e` record their clean twin
+  (``base_case_id``) from the existing code-agent evaluation fixtures. A later
+  clean/adversarial pairing can set ``adversarial_variant`` on those clean
+  cases bidirectionally.
+- `pi_test_file` and `pi_configuration` are constructed so that the adversarial
+  content reaches AI input through test fixtures and configuration files
+  respectively; they stand alone and have no clean twin.
+
+Each case records `case_id`, `attack_location`, `attack_type`,
+`malicious_instruction`, `benign_context`, `base_artifact`, `expected_behavior`,
+`expected_security_outcome`, `injection_classification`, `severity`,
+`base_case_id`, and `files` — aligning with the prompt-injection metadata schema
+in section 13.
+
+#### Inert-data boundary
+
+The malicious content is **inert benchmark data**. It is stored in repository
+fixtures so that it reaches AI input, but:
+
+- It is never executed, never passed to a shell, and never sent over the
+  network.
+- It is never treated as agent instructions or as a command.
+- It contains no real secrets, credentials, or API keys (only clearly fake
+  placeholders such as `sk-test-...`).
+
+The fixtures deliberately separate repository content, the benign context, the
+expected agent behaviour, and the expected outcome into distinct metadata fields
+so that an evaluator can measure whether the system follows the injection
+instead of analysing the repository correctly.
+
+#### Defensive mechanism deferral
+
+This step only creates the test-case suite and its deterministic tests. It does
+**not** implement or modify any agent behaviour, add LLM calls, network access,
+shell execution, or remediation. In particular, the content-handling / isolation
+policy that a robust system would use to resist injection (see RQ6 hypothesis)
+is **deferred** and is not assumed by these fixtures: each case still pins the
+legitimate artifact and the expected correct outcome regardless of how a given
+system chooses to resist the injection.
+
 ---
 
 ## 10. Difficulty Levels

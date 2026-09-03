@@ -1,0 +1,4 @@
+database:
+  host: db.example.internal
+  username: deploy
+  password: plaintext-credential-0000
