@@ -5,6 +5,11 @@ webhook payloads.  This is a thin external-input layer: agents must not
 depend on raw GitHub JSON.
 """
 
+from src.github.action import (
+    SecureFlowAction,
+    SecureFlowActionConfig,
+    event_to_request,
+)
 from src.github.models import (
     GitHubPREvent,
     PRAction,
@@ -22,8 +27,11 @@ __all__ = [
     "GitHubPREvent",
     "PRAction",
     "PRFile",
+    "SecureFlowAction",
+    "SecureFlowActionConfig",
     "UnsupportedActionError",
     "WebhookPayloadError",
+    "event_to_request",
     "parse_pr_webhook",
     "to_repository_context",
     "webhook_handler",

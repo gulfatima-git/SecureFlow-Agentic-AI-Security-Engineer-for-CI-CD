@@ -1,0 +1,50 @@
+name: SecureFlow Security Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Validate SecureFlow configuration
+        run: |
+          if [ -z "$SECUREFLOW_API_URL" ]; then
+            echo "::error::SECUREFLOW_API_URL is not configured."
+            exit 1
+          fi
+
+      - name: Run SecureFlow security scan
+        env:
+          SECUREFLOW_API_URL: ${{ secrets.SECUREFLOW_API_URL }}
+          SECUREFLOW_API_TOKEN: ${{ secrets.SECUREFLOW_API_TOKEN }}
+        run: |
+          PAYLOAD=$(cat <<EOF
+          {
+            "repository": "${{ github.repository }}",
+            "pr_number": ${{ github.event.pull_request.number }},
+            "head_sha": "${{ github.event.pull_request.head.sha }}",
+            "base_sha": "${{ github.event.pull_request.base.sha }}"
+          }
+          EOF
+          )
+
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${SECUREFLOW_API_TOKEN}" \
+            -d "${PAYLOAD}" \
+            "${SECUREFLOW_API_URL}")
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "SecureFlow scan initiated successfully (HTTP ${HTTP_STATUS})."
+          else
+            echo "::error::SecureFlow API returned HTTP ${HTTP_STATUS}."
+            exit 1
+          fi
