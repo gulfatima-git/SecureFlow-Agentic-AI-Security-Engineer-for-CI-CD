@@ -13,14 +13,19 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Validate SecureFlow configuration
+      - name: Check SecureFlow configuration
+        shell: bash
         run: |
           if [ -z "$SECUREFLOW_API_URL" ]; then
-            echo "::error::SECUREFLOW_API_URL is not configured."
-            exit 1
+            echo "::notice::SecureFlow scan skipped: SECUREFLOW_API_URL is not configured."
+          else
+            echo "SecureFlow scan enabled; SECUREFLOW_API_URL is configured."
           fi
+        env:
+          SECUREFLOW_API_URL: ${{ secrets.SECUREFLOW_API_URL }}
 
       - name: Run SecureFlow security scan
+        if: ${{ secrets.SECUREFLOW_API_URL != '' }}
         env:
           SECUREFLOW_API_URL: ${{ secrets.SECUREFLOW_API_URL }}
           SECUREFLOW_API_TOKEN: ${{ secrets.SECUREFLOW_API_TOKEN }}

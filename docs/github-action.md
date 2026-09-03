@@ -69,6 +69,21 @@ secrets:
   SECUREFLOW_API_TOKEN: <your-token>
 ```
 
+### Skipping until SECUREFLOW_API_URL is configured
+
+SecureFlow does not yet have a deployed production API. During this development
+stage `SECUREFLOW_API_URL` is deliberately **not configured**, so the workflow's
+scan step is gated to run only when the secret is present:
+
+- If `SECUREFLOW_API_URL` is **unset or empty**, the workflow logs a clear notice
+  that the SecureFlow scan was skipped because `SECUREFLOW_API_URL` is not
+  configured, and completes **successfully** (it does not fail the check).
+- If `SECUREFLOW_API_URL` **is configured**, the scan proceeds as normal.
+
+This keeps pull-request checks green during development while preserving the
+production behavior once the SecureFlow API is deployed (a later step). No fake
+production URL is used as a stand-in.
+
 ## Secret handling
 
 - `SECUREFLOW_API_URL` and `SECUREFLOW_API_TOKEN` are supplied through GitHub
@@ -97,8 +112,9 @@ pull requests from forks by default. This means:
 
 - Fork PRs will **not** have access to `SECUREFLOW_API_URL` or
   `SECUREFLOW_API_TOKEN`.
-- The workflow will fail safely with a configuration error if the secrets are
-  unavailable.
+- Because the scan step is gated on `SECUREFLOW_API_URL`, fork PRs (which do not
+  have the secret) will have the scan **skipped** gracefully — they will not run
+  the workflow body that requires the secret.
 - Secrets are never exposed to untrusted fork code.
 
 This is the expected security behavior. To run SecureFlow on fork PRs, a
@@ -148,13 +164,17 @@ SecureFlowRequest(
 
 The workflow distinguishes the following outcomes:
 
-| Situation               | Behavior                                      |
-|-------------------------|-----------------------------------------------|
-| Invalid configuration   | Workflow exits with error, logs the issue     |
-| API returns HTTP 2xx    | Success message logged                        |
-| API returns non-2xx     | Error logged, workflow exits with code 1      |
-| Network timeout         | Timeout error logged, workflow exits with code 1|
-| Unexpected exception    | Error logged, workflow exits with code 1      |
+| Situation                 | Behavior                                             |
+|---------------------------|------------------------------------------------------|
+| `SECUREFLOW_API_URL` unset/empty | Scan is **skipped**; a notice is logged; workflow succeeds |
+| `SECUREFLOW_API_URL` set, HTTP 2xx | Success message logged                               |
+| `SECUREFLOW_API_URL` set, HTTP non-2xx | Error logged, scan step exits with code 1            |
+| Network timeout           | Timeout error logged, scan step exits with code 1     |
+| Unexpected exception      | Error logged, scan step exits with code 1             |
+
+Only a missing/empty `SECUREFLOW_API_URL` causes a graceful skip. Any API
+invocation that does occur still treats non-success responses, timeouts, and
+unexpected errors as failures.
 
 The workflow **never** automatically modifies the PR, creates commits, or
 applies remediation.
@@ -172,8 +192,8 @@ applies remediation.
 
 ## What is intentionally deferred
 
-- No production SecureFlow API deployment (the endpoint is configurable but not
-  implemented here)
+- No production SecureFlow API deployment — until one is configured, the scan is
+  skipped gracefully (a deployed API will be configured in a later step)
 - No PR comments or status checks (future step)
 - No automatic remediation
 - No repository modification
@@ -190,6 +210,9 @@ applies remediation.
 - Changed files in the workflow payload are not included (only repository, PR
   number, and SHAs). The full `SecureFlowRequest` with changed files is available
   through the Python `event_to_request` adapter when invoked programmatically.
+- Because `SECUREFLOW_API_URL` is not configured during development, the workflow
+  effectively skips scanning until a production API is deployed and the secret is
+  set.
 
 ## Step 22 statement
 

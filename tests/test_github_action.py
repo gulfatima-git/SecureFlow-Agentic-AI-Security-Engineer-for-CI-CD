@@ -220,6 +220,82 @@ class TestWorkflowSecrets:
             assert pattern not in source, f"Credential pattern found: {pattern}"
 
 
+# -- Workflow skip behavior -------------------------------------------------
+
+
+def _workflow_steps(data: dict) -> list[dict]:
+    """Return the ordered steps of the first job in a parsed workflow."""
+    jobs = data.get("jobs", {})
+    assert isinstance(jobs, dict), "workflow must define jobs"
+    first_job = next(iter(jobs.values()))
+    assert isinstance(first_job, dict), "first job must be a mapping"
+    steps = first_job.get("steps", [])
+    assert isinstance(steps, list), "job steps must be a list"
+    return steps
+
+
+class TestWorkflowSkipBehavior:
+    def test_has_configuration_check_step(self):
+        data = _load_workflow()
+        steps = _workflow_steps(data)
+        names = [s.get("name", "") for s in steps]
+        assert any("configuration" in n.lower() for n in names), (
+            "workflow should have a configuration check step"
+        )
+
+    def test_has_scan_step(self):
+        data = _load_workflow()
+        steps = _workflow_steps(data)
+        names = [s.get("name", "") for s in steps]
+        assert any("scan" in n.lower() for n in names), (
+            "workflow should have a scan step"
+        )
+
+    def test_scan_step_only_runs_when_url_configured(self):
+        data = _load_workflow()
+        steps = _workflow_steps(data)
+        scan_step = next(
+            (s for s in steps if "scan" in s.get("name", "").lower()),
+            None,
+        )
+        assert scan_step is not None, "scan step not found"
+        condition = scan_step.get("if", "")
+        assert isinstance(condition, str)
+        assert "SECUREFLOW_API_URL" in condition
+        assert "!=" in condition
+        assert "''" in condition or '""' in condition
+
+    def test_configuration_check_does_not_fail_when_url_missing(self):
+        data = _load_workflow()
+        steps = _workflow_steps(data)
+        check_step = next(
+            (s for s in steps if "configuration" in s.get("name", "").lower()),
+            None,
+        )
+        assert check_step is not None, "configuration check step not found"
+        script = check_step.get("run", "")
+        assert isinstance(script, str)
+        # A missing API URL must produce a graceful notice, not a failure.
+        assert "::notice::" in script or "echo" in script
+        assert "exit 1" not in script
+
+    def test_scan_step_has_no_escape_hatch_for_missing_url(self):
+        data = _load_workflow()
+        steps = _workflow_steps(data)
+        scan_step = next(
+            (s for s in steps if "scan" in s.get("name", "").lower()),
+            None,
+        )
+        assert scan_step is not None
+        # The scan must never run unconditionally; it is gated by `if`.
+        assert scan_step.get("if", "") != ""
+
+    def test_url_not_hardcoded_in_workflow(self):
+        source = WORKFLOW_PATH.read_text(encoding="utf-8")
+        assert "https://api.secureflow" not in source
+        assert "http://localhost:" not in source
+
+
 # -- SecureFlowRequest model ------------------------------------------------
 
 
