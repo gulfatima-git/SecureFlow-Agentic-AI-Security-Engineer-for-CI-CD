@@ -414,7 +414,13 @@ class TestNoExecution:
         assert not hasattr(webhook_module, "subprocess")
 
     def test_no_repository_access_in_src(self):
-        github_dir = Path(webhook_module.__file__).parent
+        # This guarantees the Step 21 webhook parser performs no network or
+        # repository activity.  It is scoped to webhook.py because the GitHub
+        # boundary later (Step 23) deliberately added a separate network-bound
+        # component (src/github/comments.py) that uses urllib for the GitHub
+        # comment API.  Scoping the guarantee here preserves the original
+        # intent (webhook parsing is offline) without over-broadening.
+        webhook_file = Path(webhook_module.__file__)
         patterns = [
             "import subprocess",
             "from subprocess",
@@ -428,12 +434,11 @@ class TestNoExecution:
             "urllib.request",
             "httpx.",
         ]
-        for py_file in github_dir.glob("*.py"):
-            source = py_file.read_text(encoding="utf-8")
-            for pattern in patterns:
-                assert pattern not in source, (
-                    f"{pattern!r} found in {py_file.name}"
-                )
+        source = webhook_file.read_text(encoding="utf-8")
+        for pattern in patterns:
+            assert pattern not in source, (
+                f"{pattern!r} found in {webhook_file.name}"
+            )
 
 
 # -- to_repository_context adapter ----------------------------------------
