@@ -1,8 +1,9 @@
 """GitHub integration boundary for SecureFlow.
 
 Provides structured models and validated parsing for GitHub pull-request
-webhook payloads.  This is a thin external-input layer: agents must not
-depend on raw GitHub JSON.
+webhook payloads, plus rendering and posting of SecureFlow investigation
+comments.  This is a thin external-input layer: agents must not depend on
+raw GitHub JSON.
 """
 
 from src.github.action import (
@@ -10,7 +11,16 @@ from src.github.action import (
     SecureFlowActionConfig,
     event_to_request,
 )
+from src.github.comments import (
+    COMMENT_MARKER,
+    GitHubAPIError,
+    GitHubCommentClient,
+    GitHubCommentConfig,
+    GitHubCommenter,
+    render_investigation_comment,
+)
 from src.github.models import (
+    GitHubComment,
     GitHubPREvent,
     PRAction,
     PRFile,
@@ -24,6 +34,12 @@ from src.github.webhook import (
 )
 
 __all__ = [
+    "COMMENT_MARKER",
+    "GitHubAPIError",
+    "GitHubComment",
+    "GitHubCommentClient",
+    "GitHubCommentConfig",
+    "GitHubCommenter",
     "GitHubPREvent",
     "PRAction",
     "PRFile",
@@ -33,6 +49,7 @@ __all__ = [
     "WebhookPayloadError",
     "event_to_request",
     "parse_pr_webhook",
+    "render_investigation_comment",
     "to_repository_context",
     "webhook_handler",
 ]

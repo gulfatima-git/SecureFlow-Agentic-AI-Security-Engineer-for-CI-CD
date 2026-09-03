@@ -61,3 +61,17 @@ class GitHubPREvent(BaseModel):
     changed_files: list[PRFile] = Field(default_factory=list)
     draft: bool = False
     metadata: dict[str, str] = Field(default_factory=dict)
+
+
+class GitHubComment(BaseModel):
+    """A GitHub PR issue comment, as returned by the API.
+
+    ``id`` and ``created_at`` may be empty when only the body is being
+    constructed locally (before a POST).  ``html_url`` is populated from the
+    API response when available.
+    """
+
+    id: int = 0
+    body: str = ""
+    html_url: str = ""
+    created_at: str = ""
