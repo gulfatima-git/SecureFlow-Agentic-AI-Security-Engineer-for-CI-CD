@@ -570,3 +570,23 @@ The following are explicitly excluded from the experimental design to maintain f
 - **Full compliance evaluation.** Regulatory compliance is out of scope for experimental evaluation.
 - **Runtime security evaluation.** The system analyzes source code and configuration, not running deployments.
 - **Training or fine-tuning.** No foundation model training or fine-tuning is performed. Experiments use existing models via API.
+
+---
+
+## Implementation Status
+
+### Baseline A — implemented (Step 27)
+
+Baseline A is implemented and measured as `src/evaluation/baseline_a.py`:
+it runs the deterministic offline scanner layer (Bandit + CI/CD analyzer) over
+the Step 26 vulnerability corpus and scores it against that corpus's ground
+truth. See `docs/benchmark-design.md` → *Step 27* for the matching policy,
+metrics, and observed results.
+
+- Reproduce: `python -m src.evaluation.baseline_a`
+- Artifact: `evaluation/results/baseline_a.json`
+- Observed (offline): TP = 4, FP = 3, FN = 3; precision = recall = 0.5714.
+  Semgrep (not installed) and the OSV dependency analyzer (network-only) are
+  recorded as unavailable; their categories are reported as false negatives.
+
+Baseline B and System C remain future comparison arms and are not yet executed.
