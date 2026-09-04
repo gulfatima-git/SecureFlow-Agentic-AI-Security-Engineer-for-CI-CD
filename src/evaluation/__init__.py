@@ -36,6 +36,17 @@ and reports precision/recall plus detection time via a real run that writes
 ``evaluation/results/baseline_a.json``.  Baseline A uses no LLM, no agent, and
 no network; tools that are unavailable or network-dependent are recorded as
 such and their categories are reported honestly as false negatives.
+
+Step 28 executes **Baseline B**, the single-LLM comparison arm
+(:mod:`src.evaluation.baseline_b`): one general-purpose LLM investigates the
+same Step 26 fixtures through a controlled, ground-truth-free untrusted
+repository representation, with no agents, no delegation, and no deterministic
+scanner output in its decision path.  Findings are attributed to ground truth
+with a Baseline-A-comparable matching policy.  The runner accepts any
+``BaselineBProvider``; because this repository has no real provider configured,
+the CLI runs an explicitly-labeled offline ``--dry-run`` (scripted provider)
+and never fabricates empirical results — real-LLM measurement is reported as
+deferred until a provider is configured.
 """
 
 from src.evaluation.adversarial import (
@@ -77,6 +88,34 @@ from src.evaluation.baseline_a import (
     default_toolchain,
     finding_matches,
     main,
+)
+from src.evaluation.baseline_b import (
+    BASELINE_B_PROMPT_VERSION,
+    BASELINE_B_SYSTEM_PROMPT,
+    DEFAULT_EMPTY_RESPONSE,
+    DEFAULT_MAX_FILE_CHARS,
+    DEFAULT_MAX_TOTAL_INPUT_CHARS,
+    BaselineBCaseResult,
+    BaselineBFinding,
+    BaselineBFindingEvidence,
+    BaselineBMetrics,
+    BaselineBModelInfo,
+    BaselineBProvider,
+    BaselineBResponse,
+    BaselineBResult,
+    BaselineBRunner,
+    BaselineBRuntimeError,
+    BaselineBTiming,
+    MalformedBaselineBResponseError,
+    RepositoryFile,
+    RepositoryPayload,
+    build_messages,
+    collect_repository_payload,
+    ignore_run_key,
+    normalize_category,
+    parse_baseline_response,
+    sanitized_repo_identifier,
+    scripted_dry_run_provider,
 )
 from src.evaluation.ground_truth import (
     ALL_CASE_NAMES,
@@ -138,6 +177,8 @@ __all__ = [
     "AdversarialResponse",
     "AggregateMetricSet",
     "AttackCategoryCoverage",
+    "BASELINE_B_PROMPT_VERSION",
+    "BASELINE_B_SYSTEM_PROMPT",
     "BASELINE_BENCHMARK_VERSION",
     "BaselineACaseResult",
     "BaselineAMetrics",
@@ -146,19 +187,36 @@ __all__ = [
     "BaselineATiming",
     "BaselineATool",
     "BaselineARunner",
+    "BaselineBCaseResult",
+    "BaselineBFinding",
+    "BaselineBFindingEvidence",
+    "BaselineBMetrics",
+    "BaselineBModelInfo",
+    "BaselineBProvider",
+    "BaselineBResponse",
+    "BaselineBResult",
+    "BaselineBRunner",
+    "BaselineBRuntimeError",
+    "BaselineBTiming",
+    "DEFAULT_EMPTY_RESPONSE",
     "DEFAULT_LINE_TOLERANCE",
+    "DEFAULT_MAX_FILE_CHARS",
+    "DEFAULT_MAX_TOTAL_INPUT_CHARS",
     "DEFAULT_OUTPUT_PATH",
     "EVAL_CASES",
     "EvaluationError",
     "EvaluationResult",
     "FAKE_CREDENTIAL_VALUE",
     "GroundTruth",
+    "MalformedBaselineBResponseError",
     "MetricSet",
     "OUTCOME_NO_CONCLUSION",
     "PROMPT_INJECTION_CASES",
     "PROMPT_INJECTION_COVERAGE",
     "PromptInjectionCase",
     "PromptInjectionCoverage",
+    "RepositoryFile",
+    "RepositoryPayload",
     "ScannerAdapter",
     "VULNERABILITY_CASES",
     "VULNERABILITY_CATEGORIES",
@@ -166,10 +224,12 @@ __all__ = [
     "VulnerabilityCategory",
     "attack_success_rate",
     "build_context",
+    "build_messages",
     "build_report",
     "cases_for_category",
     "classify_finding",
     "collect_corpus",
+    "collect_repository_payload",
     "collect_tool_output",
     "combined_finding_text",
     "correct_rejection_rate",
@@ -179,13 +239,18 @@ __all__ = [
     "false_conclusion_rate",
     "finding_matches",
     "get_vulnerability_case",
+    "ignore_run_key",
     "is_evidence_grounded",
     "is_hallucination",
     "is_localized",
     "is_severity_ok",
     "main",
     "no_conclusion_rate",
+    "normalize_category",
     "optional_tool_output",
+    "parse_baseline_response",
     "run_evaluation",
+    "sanitized_repo_identifier",
     "score_case",
+    "scripted_dry_run_provider",
 ]

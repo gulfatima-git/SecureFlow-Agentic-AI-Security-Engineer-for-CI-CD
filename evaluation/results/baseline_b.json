@@ -1,0 +1,337 @@
+{
+  "baseline_id": "baseline_b",
+  "benchmark_name": "secureflow-vulnerability-benchmark",
+  "benchmark_version": "1.0.0",
+  "prompt_version": "baseline-b-v1",
+  "evaluation_status": "dry_run",
+  "note": "OFFLINE DRY-RUN: scripted provider emitted empty findings for every variant; not empirical LLM performance.",
+  "model": {
+    "provider": "scripted-dry-run",
+    "model": "none"
+  },
+  "evaluated_case_ids": [
+    "sql_injection",
+    "command_injection",
+    "xss",
+    "hardcoded_secret",
+    "dependency_vulnerability",
+    "insecure_cicd",
+    "docker_misconfiguration"
+  ],
+  "num_vulnerable_cases": 7,
+  "num_clean_controls": 7,
+  "metrics": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 7,
+    "precision": 0.0,
+    "recall": 0.0,
+    "true_negative_count": 7,
+    "total_vulnerable_cases": 7,
+    "total_clean_controls": 7,
+    "total_llm_findings": 0,
+    "valid_responses": 14,
+    "malformed_responses": 0
+  },
+  "timing": {
+    "total_investigation_seconds": 0.0011,
+    "mean_per_case_seconds": 0.0001,
+    "median_per_case_seconds": 0.0001
+  },
+  "per_case": [
+    {
+      "case_id": "sql_injection",
+      "variant": "vulnerable",
+      "category": "sql_injection",
+      "expected_file": "app/db.py",
+      "expected_lines": [
+        7,
+        7
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 0.000134199857711792
+    },
+    {
+      "case_id": "sql_injection",
+      "variant": "clean",
+      "category": "sql_injection",
+      "expected_file": "app/db.py",
+      "expected_lines": [
+        7,
+        7
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 0.00013830000534653664
+    },
+    {
+      "case_id": "command_injection",
+      "variant": "vulnerable",
+      "category": "command_injection",
+      "expected_file": "cli/tools.py",
+      "expected_lines": [
+        5,
+        5
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 7.289974018931389e-05
+    },
+    {
+      "case_id": "command_injection",
+      "variant": "clean",
+      "category": "command_injection",
+      "expected_file": "cli/tools.py",
+      "expected_lines": [
+        5,
+        5
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 7.770024240016937e-05
+    },
+    {
+      "case_id": "xss",
+      "variant": "vulnerable",
+      "category": "xss",
+      "expected_file": "web/render.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 7.849978283047676e-05
+    },
+    {
+      "case_id": "xss",
+      "variant": "clean",
+      "category": "xss",
+      "expected_file": "web/render.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 7.269997149705887e-05
+    },
+    {
+      "case_id": "hardcoded_secret",
+      "variant": "vulnerable",
+      "category": "hardcoded_secret",
+      "expected_file": "config/settings.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 9.019998833537102e-05
+    },
+    {
+      "case_id": "hardcoded_secret",
+      "variant": "clean",
+      "category": "hardcoded_secret",
+      "expected_file": "config/settings.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 7.100030779838562e-05
+    },
+    {
+      "case_id": "dependency_vulnerability",
+      "variant": "vulnerable",
+      "category": "dependency_vulnerability",
+      "expected_file": "requirements.txt",
+      "expected_lines": [
+        3,
+        3
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 3.4300144761800766e-05
+    },
+    {
+      "case_id": "dependency_vulnerability",
+      "variant": "clean",
+      "category": "dependency_vulnerability",
+      "expected_file": "requirements.txt",
+      "expected_lines": [
+        3,
+        3
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 2.8199981898069382e-05
+    },
+    {
+      "case_id": "insecure_cicd",
+      "variant": "vulnerable",
+      "category": "insecure_cicd",
+      "expected_file": ".github/workflows/ci.yml",
+      "expected_lines": [
+        6,
+        14
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 2.730032429099083e-05
+    },
+    {
+      "case_id": "insecure_cicd",
+      "variant": "clean",
+      "category": "insecure_cicd",
+      "expected_file": ".github/workflows/ci.yml",
+      "expected_lines": [
+        6,
+        14
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 0.00011900020763278008
+    },
+    {
+      "case_id": "docker_misconfiguration",
+      "variant": "vulnerable",
+      "category": "docker_misconfiguration",
+      "expected_file": "Dockerfile",
+      "expected_lines": [
+        5,
+        6
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 6.0399994254112244e-05
+    },
+    {
+      "case_id": "docker_misconfiguration",
+      "variant": "clean",
+      "category": "docker_misconfiguration",
+      "expected_file": "Dockerfile",
+      "expected_lines": [
+        5,
+        6
+      ],
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "response_ok": true,
+      "response_error": "",
+      "investigation_duration_seconds": 6.169965490698814e-05
+    }
+  ]
+}

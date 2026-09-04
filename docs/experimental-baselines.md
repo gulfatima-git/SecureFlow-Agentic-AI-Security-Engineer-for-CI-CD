@@ -590,3 +590,24 @@ metrics, and observed results.
   recorded as unavailable; their categories are reported as false negatives.
 
 Baseline B and System C remain future comparison arms and are not yet executed.
+
+### Baseline B — implemented (Step 28), empirical measurement deferred
+
+Baseline B is implemented as `src/evaluation/baseline_b.py`: one general-purpose
+LLM investigates the same Step 26 fixtures (same 7 vulnerable + 7 clean
+controls as Baseline A) through a controlled, ground-truth-free untrusted
+repository representation.  It uses no agents, no delegation, no scanner output
+in its decision path, and no network in its evaluation scaffolding.
+
+- Runner/tests: 48 unit tests (scripted providers only).  See
+  `docs/benchmark-design.md` → *Step 28* for the matching policy, prompt
+  version, and metrics.
+- Dry-run reproduction: `python -m src.evaluation.baseline_b --dry-run`
+  → `evaluation/results/baseline_b.json` (stamped `evaluation_status: "dry_run"`).
+- **No real LLM provider is configured in this repository**, so **empirical
+  Baseline B results have not been produced and must not be inferred from the
+  dry-run**.  Real measurement is deferred; when a provider is configured,
+  programmatic use of `BaselineBProvider` with a real raw-complete callable
+  yields an `evaluation_status: "empirical"` run.
+
+System C remains a future comparison arm and is not yet executed.

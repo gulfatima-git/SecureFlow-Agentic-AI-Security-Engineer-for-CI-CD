@@ -899,6 +899,143 @@ behaviour on clean code is the experiment's evidence, and the design principle
   (root cause, exploitability, remediation) are out of scope for this arm and
   deferred to Baselines B and C.
 
+### Baseline B: single-LLM investigation (Step 28)
+
+#### Purpose
+
+Step 28 executes the **Baseline B** comparison arm defined in
+`docs/experimental-baselines.md`: one general-purpose LLM acts as a single
+security investigator against the **exact same Step 26 benchmark** used by
+Baseline A — the same seven vulnerable fixtures and the same seven clean
+controls.  Baseline B is the critical experimental condition for RQ1/RQ2: it
+isolates whether multi-agent specialization (System C) beats a single LLM
+receiving equivalent controlled evidence.
+
+Baseline B is deliberately **not** "LLM + deterministic tools": no scanner
+output is put in the LLM's decision path.  It uses no specialized agents, no
+delegation, no Orchestrator, and no Investigation/Risk/Remediation agents.  It
+never calls GitHub, never modifies repositories, never executes fixture code,
+Docker, or workflows, and never runs arbitrary shell commands.
+
+#### Controlled input representation
+
+The LLM receives only a ground-truth-free payload built by
+`src/evaluation/baseline_b.py` (`collect_repository_payload`):
+
+- a **sanitized repository identifier** (`secureflow-bench/repo-01` … `repo-07`),
+  deterministically derived from the case's position in the corpus.  The case's
+  own `repo_identifier` embeds the category (e.g. `secureflow-bench/sql-injection`)
+  and is deliberately never passed.  A case's clean control is the *same*
+  repository, so both variants share one identifier and no clean/vulnerable
+  label ever reaches the model;
+- relative file paths plus file contents (UTF-8 text files only, sorted,
+  per-file and total budgets enforced);
+- a **versioned, generic system prompt** (`BASELINE_B_PROMPT_VERSION` =
+  `baseline-b-v1`) that frames the model as a single analyst, declares all
+  repository content UNTRUSTED DATA (never instructions), and requests a strict
+  JSON output contract.  It does not enumerate the benchmark's categories,
+  severities, expected findings, clean/vulnerable labels, or any ground truth.
+
+The prompted JSON output contract is `{"findings": [...]}` where each finding
+carries `finding_id`, `category/type`, `title`, `file`, `start_line`,
+`end_line`, `description`, `evidence`, `severity`, `confidence`, and
+`remediation`; `{"findings": []}` is the explicit no-findings case.
+
+#### Ground-truth matching policy
+
+Mirrors Step 27 so the arms are directly comparable.  For each finding from the
+LLM:
+
+1. **Category** — the LLM's `category`/`title` prose is normalized to the
+   benchmark's `VulnerabilityCategory` by deterministic keyword matching
+   (`normalize_category`).  A finding whose category cannot be normalized can
+   never match ground truth.
+2. **File** — the finding's repository-relative path, resolved against the
+   scanned fixture, must equal the case's `vulnerable_file`.
+3. **Location** — the finding's line range must overlap the ground-truth range
+   within the same `line_tolerance` (±3).  `start_line == 0` (no line info) is a
+   file-level match.
+4. **Severity and confidence are NOT required** for a true positive.
+
+One ground-truth issue counts once: the first matching finding credits the TP;
+further matches are duplicates excluded from TP and FP.  Unmatched findings on
+a vulnerable fixture, and every finding on a clean control, count as false
+positives.  A finding object in the response is treated as a security claim
+even if it has no meaningful file — it is then unmatchable and counts as FP.
+
+#### Structured output, malformed handling
+
+Responses are JSON-validated into Pydantic models
+(`BaselineBResponse`/`BaselineBFinding`).  Any malformed element invalidates
+the whole response.  A malformed (or provider-error) variant is recorded with
+`response_ok: false`, the failure reason, zero findings, and zero TP — it never
+crashes the benchmark and is never silently converted into a detection.
+`malformed_responses` and `valid_responses` are counted in the metrics.
+
+#### Metrics, timing
+
+Same primary metrics as Baseline A: `precision = TP/(TP+FP)`,
+`recall = TP/(TP+FN)` with `0.0` on a zero denominator; raw TP/FP/FN/TN, total
+vulnerable cases (7), total clean controls (7), total LLM findings, valid
+responses, and malformed responses.  Detection time is measured with
+`time.perf_counter` around the provider round-trip only (per-case/total/mean/
+median); for a real API provider this includes request/response latency by
+design.
+
+#### Real LLM vs. dry-run
+
+The runner accepts any `BaselineBProvider` wrapping a raw-text callable; a real
+provider can be supplied programmatically with no credentials in the module,
+tests, or artifact.  **This repository has no real provider configured**, so:
+
+- the CLI runs an explicit, clearly-labeled `--dry-run` with a scripted provider
+  (empty findings for every variant) and writes the artifact stamped
+  `evaluation_status == "dry_run"`;
+- no empirical Baseline B results are claimed or fabricated;
+- real empirical measurement is **deferred** until a provider is configured.
+
+Reproduce the dry-run:
+
+```text
+python -m src.evaluation.baseline_b --dry-run
+```
+
+writes `evaluation/results/baseline_b.json`.  `--script <file.json>` runs a
+scripted test matrix (`{"case_id:variant": "raw_response_text"}`).  Without
+`--dry-run` or `--script` the CLI refuses to run and reports that empirical
+measurement is deferred.
+
+#### Measured status
+
+Baseline B is implemented and verified (48 unit tests; runner, matching,
+metrics, timing, prompt-safety, and artifact tests all use scripted providers).
+Empirical performance has **not** been measured pending a real LLM provider; a
+dry-run smoke artifact (labeled `dry_run`) is present at
+`evaluation/results/baseline_b.json`.  Test output from FakeLLM/scripted
+providers must never be reported as empirical Baseline B results.
+
+#### Fair-comparison notes with Baseline A
+
+- Same corpus, same ground truth, same TP/FP/FN/TN definitions, same
+  precision/recall formula, same line tolerance.
+- Baseline A uses deterministic local tools (no LLM reasoning); Baseline B uses
+  one LLM pass and no scanner assistance.  These are different execution
+  environments: LLM detection time is API-latency dominated, local tools are
+  subprocess-startup dominated.  Direct wall-clock speed comparisons are not
+  fully controlled and must be interpreted carefully.
+
+#### Limitations
+
+- No empirical measurements yet; dry-run output is pipeline verification only.
+- A single LLM pass has no tool grounding; findings reflect model knowledge and
+  the provided file content, with the same context-window limits as any single
+  prompt.
+- Category normalization is keyword-based; unusual but correct LLM wording may
+  normalize to the wrong category and lower recall.
+- Grid keyed on `case_id:variant` is only meaningful for scripted testing; a
+  real provider ignores the key.
+- Seven cases, one per category, is a small sample (same caveat as Steps 26-27).
+
 ---
 
 ## 10. Difficulty Levels
