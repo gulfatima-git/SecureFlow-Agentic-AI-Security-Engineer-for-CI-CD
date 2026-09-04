@@ -624,6 +624,141 @@ deterministic mock responses to exercise the scoring machinery.
 
 ---
 
+### Vulnerability benchmark with ground truth (Step 26)
+
+#### Purpose
+
+Step 26 starts the **vulnerability benchmark** called for in Section 6
+(Ground-Truth Requirements): a small, controlled, deterministic corpus of seven
+cases — one per benchmark security category — each with explicit, by-construction
+ground truth and a paired clean control. The corpus is the shared substrate on
+which the three systems (traditional deterministic tools, the single-LLM
+baseline, and the SecureFlow multi-agent system) will later be compared for
+precision/recall, false positives, and false negatives.
+
+Ground truth here is *independent of any system opinion*:
+
+- it is defined when each fixture is constructed,
+- it records what *is* true about the fixture (file, lines, category, severity,
+  root cause, evidence, asset, remediation), and
+- it never asks a tool or an LLM to produce or validate it.
+
+Per the design, **Ground Truth ≠ Tool Finding ≠ LLM Finding**. The first is
+maintained in `src/evaluation/vulnerability.py`; the second is produced by the
+deterministic analyzers (`src/tools/`); the third by agent responses. Matching
+findings to ground truth (and computing metrics) is deferred to a later step.
+
+#### Categories and cases
+
+Each case implements one of the seven categories from Section 4; no category is
+represented by more than one Step 26 case, so category coverage is explicitly
+one-to-one at this stage (later steps may add cases):
+
+| Case ID | Category | Vulnerable file | Ground-truth location |
+|---|---|---|---|
+| `sql_injection` | SQL injection | `app/db.py` | line 7 |
+| `command_injection` | Command injection | `cli/tools.py` | line 5 |
+| `xss` | Cross-site scripting | `web/render.py` | line 2 |
+| `hardcoded_secret` | Hardcoded secrets | `config/settings.py` | line 2 |
+| `dependency_vulnerability` | Dependency vulnerabilities | `requirements.txt` | line 3 |
+| `insecure_cicd` | Insecure GitHub Actions | `.github/workflows/ci.yml` | lines 6–14 |
+| `docker_misconfiguration` | Docker misconfiguration | `Dockerfile` | lines 5–6 |
+
+#### Ground-truth representation
+
+Every case is a frozen `VulnerabilityCase` in
+`src/evaluation/vulnerability.py` recording:
+
+- `case_id`, `category`, `scenario`, `repo_identifier`;
+- `vulnerable_file`, `start_line`, `end_line` (exact anchor into the fixture);
+- `expected_finding` (the canonical statement a correct system should reach);
+- `severity` (reusing `src.models.security_finding.Severity`), `root_cause`,
+  `evidence` (short literal excerpt from the vulnerable location), `affected_asset`,
+  `remediation`, `rationale`;
+- `clean_control_id` and, for the secret case, a benchmark-only fake credential.
+
+The dependency case (`dependency_vulnerability`) records `requests==2.28.0` as
+the pinned vulnerable version with its expected finding; its ground truth does
+**not** depend on a live OSV call — the advisory relationship for that pin is
+documented and offline-verifiable.
+
+#### Clean controls
+
+Each case has a `<case_id>_clean/` sibling fixture that **preserves the
+repository's purpose while removing the vulnerability**:
+
+- SQL: parameterized query instead of f-string interpolation;
+- command injection: `subprocess.run([...])` with a non-shell argument list;
+- XSS: output HTML-escaped (`html.escape`);
+- hardcoded secret: credential loaded from the environment, literal removed;
+- dependency: `requests==2.31.0` (fixed release) in place of `2.28.0`;
+- insecure CI: `contents: read` and no untrusted PR input in a `run` step;
+- Docker: no `ARG/ENV` secret bake and a non-root `USER` instruction.
+
+Clean fixtures are intentionally multi-file (a matching application file) so a
+system must attribute the finding to the correct file rather than to the mere
+presence of the fixture. Vulnerable and clean repositories share file structure
+and purpose, so the only material difference is the injected defect — later
+precision/recall evaluation (RQ1) can therefore observe false positives and
+false negatives on matched control pairs.
+
+#### Safety boundaries
+
+Fixtures are inert data, never executed:
+
+- no `subprocess`/shell invocation is required to load or verify them;
+- fixture loading makes **no network requests** (dependency ground truth is
+  recorded locally);
+- no real credentials exist anywhere; the only credential-like string is the
+  clearly fake, benchmark-only `FAKE_CREDENTIAL_VALUE` (`sf_bench_…`) used by the
+  hardcoded-secret case;
+- no executables, no `*.sh`/`*.bat`/etc., and no `subprocess.call`/`os.popen`
+  calls appear in fixture content.
+
+These constraints are enforced by `tests/test_vulnerability_benchmark.py`
+(safety section).
+
+#### Deterministic verification
+
+`tests/test_vulnerability_benchmark.py` verifies deterministically, without
+running a tool or an LLM:
+
+- exactly seven categories and seven cases, one per category;
+- all `case_id` / `clean_control_id` values are unique and disjoint;
+- all mandatory fields are non-empty and severities are valid
+  `Severity` values;
+- `start_line`/`end_line` fall inside the real vulnerable file;
+- vulnerable and clean fixture directories exist and differ (vulnerable != clean);
+- the fake credential appears only in the hardcoded-secret vulnerable fixture
+  and never in its clean fixture or in any `expected_finding`;
+- fixture contents contain no network indicators, real-credential patterns, or
+  executable file types.
+
+#### Relationship to the benchmark schema (Section 13)
+
+The `VulnerabilityCase` fields map directly onto the design's case schema
+(Section 13): the `evidence`, `expected_finding`, `root_cause`, `remediation`,
+`severity`, and `affected_asset` fields are the schema's ground-truth
+dimensions. `repo_identifier` records a synthetic `secureflow-bench/…`
+identifier (all Step 26 cases are *synthetic*, per Section 5 taxonomy), and every
+case documents its ground-truth confidence implicitly through `rationale`.
+
+#### Limitations
+
+- **Seven cases** is a feasibility baseline, not the planned ~15–20-case target
+  of Section 12; additional cases (including multi-source combinations per
+  Section 7 and difficulty variation per Section 10) are future steps.
+- Scoring, per-case metrics, and three-system comparison are **not** implemented
+  here; this step produces the ground-truthed corpus and its deterministic
+  integrity checks only.
+- `expected_finding` is a prose canonical statement; a later scoring step must
+  define precise matching rules (category match, location match, evidence
+  overlap) before it can be scored automatically.
+- Real-LLM execution and GitHub/network actions remain out of scope, matching
+  the safety boundaries of Steps 24–25.
+
+---
+
 ## 10. Difficulty Levels
 
 Difficulty reflects the investigation reasoning required, not repository size.
