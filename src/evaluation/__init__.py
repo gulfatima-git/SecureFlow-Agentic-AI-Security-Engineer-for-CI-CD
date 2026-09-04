@@ -27,6 +27,15 @@ command injection, XSS, hardcoded secrets, dependency vulnerabilities, insecure
 GitHub Actions, and Docker misconfiguration), each paired with a clean control.
 Like Steps 24-25 this is a case-definition layer only; executing the compared
 systems against these fixtures is out of scope for Step 26.
+
+Step 27 executes **Baseline A**, the deterministic scanner-only comparison arm
+(:mod:`src.evaluation.baseline_a`): it runs the existing offline tool layer
+(Bandit, the CI/CD analyzer) over every vulnerable case and clean control,
+attributes scanner findings to ground truth with a documented matching policy,
+and reports precision/recall plus detection time via a real run that writes
+``evaluation/results/baseline_a.json``.  Baseline A uses no LLM, no agent, and
+no network; tools that are unavailable or network-dependent are recorded as
+such and their categories are reported honestly as false negatives.
 """
 
 from src.evaluation.adversarial import (
@@ -51,6 +60,23 @@ from src.evaluation.adversarial_scoring import (
     evidence_preservation_rate,
     false_conclusion_rate,
     no_conclusion_rate,
+)
+from src.evaluation.baseline_a import (
+    BASELINE_BENCHMARK_VERSION,
+    DEFAULT_LINE_TOLERANCE,
+    DEFAULT_OUTPUT_PATH,
+    BaselineACaseResult,
+    BaselineAMetrics,
+    BaselineAResult,
+    BaselineARunner,
+    BaselineARuntimeError,
+    BaselineATiming,
+    BaselineATool,
+    ScannerAdapter,
+    classify_finding,
+    default_toolchain,
+    finding_matches,
+    main,
 )
 from src.evaluation.ground_truth import (
     ALL_CASE_NAMES,
@@ -112,6 +138,16 @@ __all__ = [
     "AdversarialResponse",
     "AggregateMetricSet",
     "AttackCategoryCoverage",
+    "BASELINE_BENCHMARK_VERSION",
+    "BaselineACaseResult",
+    "BaselineAMetrics",
+    "BaselineAResult",
+    "BaselineARuntimeError",
+    "BaselineATiming",
+    "BaselineATool",
+    "BaselineARunner",
+    "DEFAULT_LINE_TOLERANCE",
+    "DEFAULT_OUTPUT_PATH",
     "EVAL_CASES",
     "EvaluationError",
     "EvaluationResult",
@@ -123,6 +159,7 @@ __all__ = [
     "PROMPT_INJECTION_COVERAGE",
     "PromptInjectionCase",
     "PromptInjectionCoverage",
+    "ScannerAdapter",
     "VULNERABILITY_CASES",
     "VULNERABILITY_CATEGORIES",
     "VulnerabilityCase",
@@ -131,18 +168,22 @@ __all__ = [
     "build_context",
     "build_report",
     "cases_for_category",
+    "classify_finding",
     "collect_corpus",
     "collect_tool_output",
     "combined_finding_text",
     "correct_rejection_rate",
+    "default_toolchain",
     "detected_target",
     "evidence_preservation_rate",
     "false_conclusion_rate",
+    "finding_matches",
     "get_vulnerability_case",
     "is_evidence_grounded",
     "is_hallucination",
     "is_localized",
     "is_severity_ok",
+    "main",
     "no_conclusion_rate",
     "optional_tool_output",
     "run_evaluation",

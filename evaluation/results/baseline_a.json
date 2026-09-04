@@ -1,0 +1,586 @@
+{
+  "baseline_id": "baseline_a",
+  "benchmark_name": "secureflow-vulnerability-benchmark",
+  "benchmark_version": "1.0.0",
+  "tools": [
+    {
+      "name": "bandit",
+      "available": true,
+      "reason": "",
+      "version": "1.9.4"
+    },
+    {
+      "name": "cicd-analyzer",
+      "available": true,
+      "reason": "",
+      "version": "0.1.0"
+    },
+    {
+      "name": "semgrep",
+      "available": false,
+      "reason": "Semgrep binary not found",
+      "version": ""
+    },
+    {
+      "name": "dependency-analyzer",
+      "available": false,
+      "reason": "requires network access to the OSV API; excluded from the offline Baseline A benchmark",
+      "version": ""
+    }
+  ],
+  "evaluated_case_ids": [
+    "sql_injection",
+    "command_injection",
+    "xss",
+    "hardcoded_secret",
+    "dependency_vulnerability",
+    "insecure_cicd",
+    "docker_misconfiguration"
+  ],
+  "num_vulnerable_cases": 7,
+  "num_clean_controls": 7,
+  "metrics": {
+    "tp": 4,
+    "fp": 3,
+    "fn": 3,
+    "precision": 0.5714,
+    "recall": 0.5714,
+    "true_negative_count": 6,
+    "total_vulnerable_cases": 7,
+    "total_clean_controls": 7,
+    "total_scanner_findings": 9,
+    "unsupported_categories": [
+      "xss",
+      "hardcoded_secret",
+      "dependency_vulnerability"
+    ]
+  },
+  "timing": {
+    "total_detection_seconds": 8.9449,
+    "mean_per_case_seconds": 0.6389,
+    "median_per_case_seconds": 0.7362
+  },
+  "per_case": [
+    {
+      "case_id": "sql_injection",
+      "variant": "vulnerable",
+      "category": "sql_injection",
+      "expected_file": "app/db.py",
+      "expected_lines": [
+        7,
+        7
+      ],
+      "expected_finding": "SQL injection: user input is interpolated into a SQL query string and executed without parameterization.",
+      "evidence": "query = f\"SELECT * FROM users WHERE id = '{user_id}'\"",
+      "findings": [
+        {
+          "tool": "bandit",
+          "rule_id": "B608.hardcoded_sql_expressions",
+          "severity": "warning",
+          "confidence": "low",
+          "message": "Possible SQL injection vector through string-based query construction.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\sql_injection\\app\\db.py",
+          "start_line": 7,
+          "end_line": 7
+        }
+      ],
+      "matched_findings": [
+        {
+          "tool": "bandit",
+          "rule_id": "B608.hardcoded_sql_expressions",
+          "severity": "warning",
+          "confidence": "low",
+          "message": "Possible SQL injection vector through string-based query construction.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\sql_injection\\app\\db.py",
+          "start_line": 7,
+          "end_line": 7
+        }
+      ],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": true,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "detection_duration_seconds": 0.8447535000741482,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "sql_injection",
+      "variant": "clean",
+      "category": "sql_injection",
+      "expected_file": "app/db.py",
+      "expected_lines": [
+        7,
+        7
+      ],
+      "expected_finding": "SQL injection: user input is interpolated into a SQL query string and executed without parameterization.",
+      "evidence": "query = f\"SELECT * FROM users WHERE id = '{user_id}'\"",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "detection_duration_seconds": 0.8105331002734601,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "command_injection",
+      "variant": "vulnerable",
+      "category": "command_injection",
+      "expected_file": "cli/tools.py",
+      "expected_lines": [
+        5,
+        5
+      ],
+      "expected_finding": "Command injection: user input reaches ``os.system`` without sanitization.",
+      "evidence": "os.system(f\"tar -czf {archive_name} .\")",
+      "findings": [
+        {
+          "tool": "bandit",
+          "rule_id": "B605.start_process_with_a_shell",
+          "severity": "error",
+          "confidence": "high",
+          "message": "Starting a process with a shell, possible injection detected, security issue.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection\\cli\\tools.py",
+          "start_line": 5,
+          "end_line": 5
+        }
+      ],
+      "matched_findings": [
+        {
+          "tool": "bandit",
+          "rule_id": "B605.start_process_with_a_shell",
+          "severity": "error",
+          "confidence": "high",
+          "message": "Starting a process with a shell, possible injection detected, security issue.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection\\cli\\tools.py",
+          "start_line": 5,
+          "end_line": 5
+        }
+      ],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": true,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "detection_duration_seconds": 0.680753200314939,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "command_injection",
+      "variant": "clean",
+      "category": "command_injection",
+      "expected_file": "cli/tools.py",
+      "expected_lines": [
+        5,
+        5
+      ],
+      "expected_finding": "Command injection: user input reaches ``os.system`` without sanitization.",
+      "evidence": "os.system(f\"tar -czf {archive_name} .\")",
+      "findings": [
+        {
+          "tool": "bandit",
+          "rule_id": "B404.blacklist",
+          "severity": "info",
+          "confidence": "high",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection_clean\\cli\\tools.py",
+          "start_line": 1,
+          "end_line": 1
+        },
+        {
+          "tool": "bandit",
+          "rule_id": "B607.start_process_with_partial_path",
+          "severity": "info",
+          "confidence": "high",
+          "message": "Starting a process with a partial executable path",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection_clean\\cli\\tools.py",
+          "start_line": 5,
+          "end_line": 8
+        },
+        {
+          "tool": "bandit",
+          "rule_id": "B603.subprocess_without_shell_equals_true",
+          "severity": "info",
+          "confidence": "high",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection_clean\\cli\\tools.py",
+          "start_line": 5,
+          "end_line": 8
+        }
+      ],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [
+        {
+          "tool": "bandit",
+          "rule_id": "B404.blacklist",
+          "severity": "info",
+          "confidence": "high",
+          "message": "Consider possible security implications associated with the subprocess module.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection_clean\\cli\\tools.py",
+          "start_line": 1,
+          "end_line": 1
+        },
+        {
+          "tool": "bandit",
+          "rule_id": "B607.start_process_with_partial_path",
+          "severity": "info",
+          "confidence": "high",
+          "message": "Starting a process with a partial executable path",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection_clean\\cli\\tools.py",
+          "start_line": 5,
+          "end_line": 8
+        },
+        {
+          "tool": "bandit",
+          "rule_id": "B603.subprocess_without_shell_equals_true",
+          "severity": "info",
+          "confidence": "high",
+          "message": "subprocess call - check for execution of untrusted input.",
+          "file_path": "C:\\Users\\Gulso\\OneDrive\\Desktop\\SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD\\tests\\fixtures\\vulnerability\\command_injection_clean\\cli\\tools.py",
+          "start_line": 5,
+          "end_line": 8
+        }
+      ],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 3,
+      "true_negative": false,
+      "detection_duration_seconds": 0.7787548997439444,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "xss",
+      "variant": "vulnerable",
+      "category": "xss",
+      "expected_file": "web/render.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "expected_finding": "Cross-site scripting: a user-controlled value is embedded in an HTML context without HTML escaping.",
+      "evidence": "body = f\"<p>{comment}</p>\"",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "detection_duration_seconds": 0.6569071006961167,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "xss",
+      "variant": "clean",
+      "category": "xss",
+      "expected_file": "web/render.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "expected_finding": "Cross-site scripting: a user-controlled value is embedded in an HTML context without HTML escaping.",
+      "evidence": "body = f\"<p>{comment}</p>\"",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "detection_duration_seconds": 0.6522822994738817,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "hardcoded_secret",
+      "variant": "vulnerable",
+      "category": "hardcoded_secret",
+      "expected_file": "config/settings.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "expected_finding": "Hardcoded secret: a plaintext credential (API key) is committed in source code instead of loaded from a secret store or environment.",
+      "evidence": "[REDACTED]",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "detection_duration_seconds": 0.6660704999230802,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "hardcoded_secret",
+      "variant": "clean",
+      "category": "hardcoded_secret",
+      "expected_file": "config/settings.py",
+      "expected_lines": [
+        2,
+        2
+      ],
+      "expected_finding": "Hardcoded secret: a plaintext credential (API key) is committed in source code instead of loaded from a secret store or environment.",
+      "evidence": "[REDACTED]",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "detection_duration_seconds": 0.8289431999437511,
+      "tool_notes": [
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "dependency_vulnerability",
+      "variant": "vulnerable",
+      "category": "dependency_vulnerability",
+      "expected_file": "requirements.txt",
+      "expected_lines": [
+        3,
+        3
+      ],
+      "expected_finding": "Dependency vulnerability: known vulnerable version of a pinned package is declared in requirements.txt.",
+      "evidence": "requests==2.28.0",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": true,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "detection_duration_seconds": 0.004036299884319305,
+      "tool_notes": [
+        "bandit: No Python files found \u2014 Bandit scan skipped",
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "dependency_vulnerability",
+      "variant": "clean",
+      "category": "dependency_vulnerability",
+      "expected_file": "requirements.txt",
+      "expected_lines": [
+        3,
+        3
+      ],
+      "expected_finding": "Dependency vulnerability: known vulnerable version of a pinned package is declared in requirements.txt.",
+      "evidence": "requests==2.28.0",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "detection_duration_seconds": 0.0032469001598656178,
+      "tool_notes": [
+        "bandit: No Python files found \u2014 Bandit scan skipped",
+        "cicd-analyzer: No supported CI/CD configuration files found"
+      ]
+    },
+    {
+      "case_id": "insecure_cicd",
+      "variant": "vulnerable",
+      "category": "insecure_cicd",
+      "expected_file": ".github/workflows/ci.yml",
+      "expected_lines": [
+        6,
+        14
+      ],
+      "expected_finding": "Insecure GitHub Actions: a workflow step runs untrusted pull-request input in a shell with repository write permissions.",
+      "evidence": "run: echo ${{ github.event.pull_request.title }}",
+      "findings": [
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.GHA.UNTRUSTED_INPUT",
+          "severity": "error",
+          "confidence": "high",
+          "message": "Untrusted input used in shell command in 'Echo PR title'",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/insecure_cicd/.github/workflows/ci.yml",
+          "start_line": 0,
+          "end_line": 0
+        }
+      ],
+      "matched_findings": [
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.GHA.UNTRUSTED_INPUT",
+          "severity": "error",
+          "confidence": "high",
+          "message": "Untrusted input used in shell command in 'Echo PR title'",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/insecure_cicd/.github/workflows/ci.yml",
+          "start_line": 0,
+          "end_line": 0
+        }
+      ],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": true,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "detection_duration_seconds": 0.7657153001055121,
+      "tool_notes": []
+    },
+    {
+      "case_id": "insecure_cicd",
+      "variant": "clean",
+      "category": "insecure_cicd",
+      "expected_file": ".github/workflows/ci.yml",
+      "expected_lines": [
+        6,
+        14
+      ],
+      "expected_finding": "Insecure GitHub Actions: a workflow step runs untrusted pull-request input in a shell with repository write permissions.",
+      "evidence": "run: echo ${{ github.event.pull_request.title }}",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "detection_duration_seconds": 0.7066426002420485,
+      "tool_notes": []
+    },
+    {
+      "case_id": "docker_misconfiguration",
+      "variant": "vulnerable",
+      "category": "docker_misconfiguration",
+      "expected_file": "Dockerfile",
+      "expected_lines": [
+        5,
+        6
+      ],
+      "expected_finding": "Docker misconfiguration: a secret is written into the image environment via ARG/ENV instead of being passed at runtime.",
+      "evidence": "ENV DB_PASSWORD ${DB_PASSWORD}",
+      "findings": [
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.DOCKER.ROOT_USER",
+          "severity": "warning",
+          "confidence": "medium",
+          "message": "Dockerfile does not specify a USER instruction; container runs as root",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/docker_misconfiguration/Dockerfile",
+          "start_line": 0,
+          "end_line": 0
+        },
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.DOCKER.SECRET_ARG",
+          "severity": "error",
+          "confidence": "medium",
+          "message": "Possible secret in ARG instruction: DB_PASSWORD",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/docker_misconfiguration/Dockerfile",
+          "start_line": 5,
+          "end_line": 5
+        },
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.DOCKER.SECRET_ENV",
+          "severity": "error",
+          "confidence": "medium",
+          "message": "Possible secret in ENV instruction: DB_PASSWORD",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/docker_misconfiguration/Dockerfile",
+          "start_line": 6,
+          "end_line": 6
+        }
+      ],
+      "matched_findings": [
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.DOCKER.ROOT_USER",
+          "severity": "warning",
+          "confidence": "medium",
+          "message": "Dockerfile does not specify a USER instruction; container runs as root",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/docker_misconfiguration/Dockerfile",
+          "start_line": 0,
+          "end_line": 0
+        }
+      ],
+      "duplicate_findings": [
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.DOCKER.SECRET_ARG",
+          "severity": "error",
+          "confidence": "medium",
+          "message": "Possible secret in ARG instruction: DB_PASSWORD",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/docker_misconfiguration/Dockerfile",
+          "start_line": 5,
+          "end_line": 5
+        },
+        {
+          "tool": "cicd-analyzer",
+          "rule_id": "CICD.DOCKER.SECRET_ENV",
+          "severity": "error",
+          "confidence": "medium",
+          "message": "Possible secret in ENV instruction: DB_PASSWORD",
+          "file_path": "C:/Users/Gulso/OneDrive/Desktop/SecureFlow-Agentic-AI-Security-Engineer-for-CI-CD/tests/fixtures/vulnerability/docker_misconfiguration/Dockerfile",
+          "start_line": 6,
+          "end_line": 6
+        }
+      ],
+      "unmatched_findings": [],
+      "true_positive": true,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": false,
+      "detection_duration_seconds": 0.7749689002521336,
+      "tool_notes": []
+    },
+    {
+      "case_id": "docker_misconfiguration",
+      "variant": "clean",
+      "category": "docker_misconfiguration",
+      "expected_file": "Dockerfile",
+      "expected_lines": [
+        5,
+        6
+      ],
+      "expected_finding": "Docker misconfiguration: a secret is written into the image environment via ARG/ENV instead of being passed at runtime.",
+      "evidence": "ENV DB_PASSWORD ${DB_PASSWORD}",
+      "findings": [],
+      "matched_findings": [],
+      "duplicate_findings": [],
+      "unmatched_findings": [],
+      "true_positive": false,
+      "false_negative": false,
+      "false_positive_count": 0,
+      "true_negative": true,
+      "detection_duration_seconds": 0.7713109999895096,
+      "tool_notes": []
+    }
+  ]
+}

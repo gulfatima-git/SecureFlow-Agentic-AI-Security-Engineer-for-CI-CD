@@ -757,6 +757,148 @@ case documents its ground-truth confidence implicitly through `rationale`.
 - Real-LLM execution and GitHub/network actions remain out of scope, matching
   the safety boundaries of Steps 24–25.
 
+### Baseline A: deterministic scanner evaluation (Step 27)
+
+#### Purpose
+
+Step 27 executes the **first comparison arm** defined in
+`docs/experimental-baselines.md`: *Baseline A — traditional security tools*.
+Baseline A is a non-LLM reference condition: the existing deterministic scanner
+layer runs over every Step 26 vulnerable case and every clean control, and its
+findings are attributed to the Step 26 ground truth by a documented,
+deterministic matching policy. The result is precision/recall, false positives,
+false negatives, and detection time for traditional tooling alone — the minimum
+bar that Baselines B (single-LLM) and C (SecureFlow multi-agent) must later
+exceed under identical controlled inputs.
+
+Baseline A uses **no LLM, no agent, and no network**. It never fabricates
+findings and never special-cases a benchmark case ID or fixture name; a category
+the available toolchain cannot detect is honestly reported as a false negative.
+
+#### Toolchain and availability
+
+The runner reuses the existing tool adapters from `src/tools/`; it adds no
+detection logic of its own. Availability is recorded in the artifact:
+
+| Tool | Version | Available? | Why |
+|---|---|---|---|
+| Bandit | 1.9.4 | Yes | Static analyser; runs offline over the fixtures |
+| CI/CD analyzer | 0.1.0 | Yes | Pure-Python analysis of workflows, Dockerfiles, Compose |
+| Semgrep | — | No | Binary not installed in this environment |
+| Dependency analyzer (OSV) | — | No | Requires network access to the OSV API; excluded from the offline run |
+
+An unavailable tool contributes zero findings, and the categories it would have
+covered are reported as false negatives rather than silently skipped.
+
+#### Deterministic corpus
+
+All seven vulnerable fixtures and all seven clean controls are evaluated in
+both variants (14 scanned directories). A missing fixture directory aborts the
+run; there is no silent skip.
+
+#### Matching policy (documented, deterministic)
+
+1. **Category.** Each scanner finding is mapped to a benchmark category from its
+   `tool + rule_id`. Bandit rules are mapped explicitly: `B602/B604/B605/B607`
+   → command injection; `B608` → SQL injection; `B105/B106/B107` → hardcoded
+   secrets. The CI/CD analyzer prefixes map explicitly: `CICD.GHA.*` → insecure
+   CI; `CICD.DOCKER.*` and `CICD.COMPOSE.*` → Docker misconfiguration.
+   Dependency-analyzer findings always map to the dependency category. Any other
+   tool/rule falls back to deterministic keyword matching over the rule id and
+   message. Rules that are deliberately *unmapped* — Bandit's `B404`
+   (subprocess import) and `B603` (subprocess without shell) — can never match
+   ground truth and contribute only false positives, reflecting their
+   low-signal, default-warning nature.
+2. **File.** The finding's path, resolved relative to the scanned fixture, must
+   equal the case's `vulnerable_file`.
+3. **Location.** The finding's line range must overlap the ground-truth range
+   within a tolerance of ±3 lines. A finding with no line information
+   (`start_line == 0`, as produced for several `CICD.GHA.*`/ROOT_USER checks) is
+   treated as a file-level match and passes this check.
+4. **Severity is not required** for a true positive.
+
+**Deduplication.** One ground-truth issue counts once: the first matching
+finding credits the true positive; further findings matching the same case are
+*duplicates*, excluded from both the TP count and the FP count. **False
+positives** are: unmatched findings on a vulnerable fixture, **and every
+finding** on a clean control (clean controls have no ground truth to match).
+
+#### Counts and metrics
+
+- `TP` per vulnerable case = 1 if at least one finding matches, else 0; `FN` per
+  vulnerable case = 1 if none match. `FP` = unmatched findings on vulnerable
+  fixtures + all findings on clean controls. `TN` (per clean control) is
+  recorded but optional.
+- `precision = TP / (TP + FP)`, `recall = TP / (TP + FN)`; a zero denominator
+  yields `0.0`. Raw values are also exposed: `TP`, `FP`, `FN`, `TN`, total
+  vulnerable cases, total clean controls, and total scanner findings.
+- **Detection time** measures only the scanner invocations with
+  `time.perf_counter` (fixture discovery, matching, and formatting are
+  excluded); per-case, total, mean, and median are recorded.
+
+#### Reproduction
+
+```text
+python -m src.evaluation.baseline_a
+```
+
+writes `evaluation/results/baseline_a.json` by default (override with
+`--out`, restrict cases with repeatable `--case`). The run is offline, needs no
+API keys, and makes no network calls. The only artifact non-determinism is the
+wall-clock detection time (Bandit subprocess startup dominates).
+
+Note: running the module with `python -m` after importing the eagerly-populated
+`src.evaluation` package emits a benign `runpy` `RuntimeWarning`; the module
+executes correctly and writes the artifact. The equivalent warning-free command
+is:
+
+```text
+python -c "from src.evaluation.baseline_a import main; raise SystemExit(main())"
+```
+
+The artifact contains: baseline id and benchmark version; tool availability;
+evaluated case IDs and counts; aggregate metrics; timing summary; and a
+per-case audit record (findings, matched, duplicates, unmatched, per-case
+TP/FP/FN, detection duration, tool notes). The benchmark fake credential is
+redacted as `[REDACTED]` wherever it would otherwise appear.
+
+#### Actual observed results (offline, this environment)
+
+| Case | Vulnerable | Clean control |
+|---|---|---|
+| `sql_injection` | **TP** — Bandit `B608` @ line 7 | TN (no findings) |
+| `command_injection` | **TP** — Bandit `B605` @ line 5 | **3 FP** — Bandit `B404`, `B607`, `B603` on safe code |
+| `xss` | **FN** — no installed tool detects it | TN |
+| `hardcoded_secret` | **FN** — Bandit `B105` did not fire; Semgrep absent | TN |
+| `dependency_vulnerability` | **FN** — OSV dependency analyzer offline | TN |
+| `insecure_cicd` | **TP** — `CICD.GHA.UNTRUSTED_INPUT` (file-level) | TN |
+| `docker_misconfiguration` | **TP** — `SECRET_ARG`/`SECRET_ENV`/`ROOT_USER` → 1 TP, 2 duplicates | TN |
+
+Aggregate: **TP = 4, FP = 3, FN = 3, TN = 6**, total scanner findings = 9;
+**precision = 0.5714, recall = 0.5714**; total detection time ≈ 7–9 s (mean ≈
+0.5 s per case, dominated by Bandit subprocess startup). Unsupported categories
+(null detection arm): `xss`, `hardcoded_secret`, `dependency_vulnerability`.
+
+**FP interpretation.** All three false positives are Bandit defaults on the
+`command_injection_clean` control (subprocess import / partial path / no-shell
+warnings). They are intentionally not tuned away: Baseline A's real FP
+behaviour on clean code is the experiment's evidence, and the design principle
+"do not handicap any system" forbids fitting parameters to the benchmark.
+
+#### Limitations
+
+- Semgrep is not installed and the OSV dependency analyzer needs network, so the
+  offline arm cannot detect XSS, hardcoded secrets, or vulnerable dependencies;
+  recall (0.5714) reflects that environment, not a claim about the tools.
+- Seven cases is a small sample and each category has exactly one case.
+- Matching assumes the ground-truth file and line anchors are accurate; findings
+  without line information are matched at file level.
+- Wall-clock timing includes tool startup; it is indicative, not
+  microbenchmark-grade.
+- Baseline A provides detection-only evidence; investigation-quality dimensions
+  (root cause, exploitability, remediation) are out of scope for this arm and
+  deferred to Baselines B and C.
+
 ---
 
 ## 10. Difficulty Levels
