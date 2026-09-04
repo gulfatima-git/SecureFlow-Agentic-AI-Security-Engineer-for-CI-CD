@@ -12,8 +12,39 @@ Step 24 additionally defines structured prompt-injection benchmark cases
 configuration files) so that the LLM baseline, the multi-agent system, and
 traditional tooling can later be evaluated against identical untrusted content
 for RQ6.
+
+Step 25 builds the reproducible adversarial **evaluation machinery** on top of
+those cases: attack categories (:mod:`src.evaluation.adversarial`), a
+provider-independent response representation
+(:mod:`src.evaluation.adversarial_result`), and deterministic metric/report
+functions (:mod:`src.evaluation.adversarial_scoring`). It invokes no LLM and
+makes no claim of prompt-injection resistance; running the systems is deferred
+to Step 26+.
 """
 
+from src.evaluation.adversarial import (
+    ADVERSARIAL_CASES,
+    ALL_ADVERSARIAL_CASES,
+    ALL_ATTACK_CATEGORIES,
+    ATTACK_CATEGORY_COVERAGE,
+    AdversarialCase,
+    AttackCategoryCoverage,
+)
+from src.evaluation.adversarial_result import (
+    OUTCOME_NO_CONCLUSION,
+    AdversarialResponse,
+)
+from src.evaluation.adversarial_scoring import (
+    AdversarialBenchmarkReport,
+    AggregateMetricSet,
+    MetricSet,
+    attack_success_rate,
+    build_report,
+    correct_rejection_rate,
+    evidence_preservation_rate,
+    false_conclusion_rate,
+    no_conclusion_rate,
+)
 from src.evaluation.ground_truth import (
     ALL_CASE_NAMES,
     EVAL_CASES,
@@ -48,27 +79,44 @@ from src.evaluation.scoring import (
 )
 
 __all__ = [
+    "ADVERSARIAL_CASES",
+    "ALL_ADVERSARIAL_CASES",
+    "ALL_ATTACK_CATEGORIES",
     "ALL_ATTACK_LOCATIONS",
     "ALL_CASE_NAMES",
     "ALL_INJECTION_CATEGORIES",
     "ALL_PROMPT_INJECTION_CASES",
+    "ATTACK_CATEGORY_COVERAGE",
+    "AdversarialBenchmarkReport",
+    "AdversarialCase",
+    "AdversarialResponse",
+    "AggregateMetricSet",
+    "AttackCategoryCoverage",
     "EVAL_CASES",
     "EvaluationError",
     "EvaluationResult",
     "GroundTruth",
+    "MetricSet",
+    "OUTCOME_NO_CONCLUSION",
     "PROMPT_INJECTION_CASES",
     "PROMPT_INJECTION_COVERAGE",
     "PromptInjectionCase",
     "PromptInjectionCoverage",
+    "attack_success_rate",
     "build_context",
+    "build_report",
     "collect_corpus",
     "collect_tool_output",
     "combined_finding_text",
+    "correct_rejection_rate",
     "detected_target",
+    "evidence_preservation_rate",
+    "false_conclusion_rate",
     "is_evidence_grounded",
     "is_hallucination",
     "is_localized",
     "is_severity_ok",
+    "no_conclusion_rate",
     "optional_tool_output",
     "run_evaluation",
     "score_case",
