@@ -268,8 +268,10 @@ They contain no real secrets and are never executed.
   as interpretation over observed file content, not by a dedicated analyzer.
 - Configuration search is **lexical** (substring match) and file-line reporting
   is limited to what the analyzer/renderer surfaces.
-- No real LLM provider is bundled; that is deferred to a later integration
-  step. The abstraction and offline test harness are in place.
+- A real, environment-configured OpenAI provider is now available
+  (`OpenAIProvider`, see `real-llm-provider.md`) and can be injected into
+  this agent exactly like `FakeLLM`; it makes no network call at
+  construction and is not exercised by the offline test suite.
 
 ## Deferred (later steps)
 

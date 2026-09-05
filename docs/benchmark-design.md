@@ -622,6 +622,12 @@ This step intentionally does **not**:
 Repository content remains untrusted data throughout. Tests use only
 deterministic mock responses to exercise the scoring machinery.
 
+A real, environment-configured OpenAI provider now exists
+(see `real-llm-provider.md`), but plugging it into Baseline/Benchmark runs —
+and any empirical claims about LLM performance — remain deferred: nothing in
+this step or the Benchmark/Baselines steps calls a real provider or makes a
+network request.
+
 ---
 
 ### Vulnerability benchmark with ground truth (Step 26)
